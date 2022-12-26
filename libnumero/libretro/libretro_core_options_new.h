@@ -50,30 +50,26 @@ extern "C" {
     *   frontend language definition */
 
    struct retro_core_option_v2_category option_cats_us[] = {
-      {
-         "gb_link",
-         "Game Boy Link",
-         "Configure networked 'Game Boy Link' (multiplayer) options."
-      },
       { NULL, NULL, NULL },
    };
 
    struct retro_core_option_v2_definition option_defs_us[] = {
       {
-         "neil_square_color",
-         "Color of the Square",
+         "mouse_speed",
+         "Speed of virtual mouse",
          NULL,
-         "You can change the color of the square that appears on the screen.",
+         "You can change the speed of the virtual mouse.",
          NULL,
          NULL,
          {
-            { "red", "Red" },
-            { "yellow", "Yellow" },
-            { "green", "Green" },
-            { "blue", "Blue" },
+            { "1", "1x" },
+            { "2", "2x" },
+            { "3", "3x" },
+            { "4", "4x" },
+            { "5", "5x" },
             { NULL, NULL },
          },
-         "red"
+         "1"
       },
       { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
    };

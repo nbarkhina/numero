@@ -62,8 +62,8 @@ char toast_buffer[250];
 static uint32_t* video_buf;
 static bool libretro_supports_option_categories = false;
 static std::string rom_path;
-int neil_square_color = 0;
 bool buttonPressed = false;
+int virtualMouseSpeed = 1;
 int virtualMouseX = 50;
 int virtualMouseY = 270;
 bool virtualMouseMode = false;
@@ -748,42 +748,12 @@ bool retro_unserialize(const void* data, size_t size)
 //this is where we check if stuff changed
 static void check_variables(void)
 {
-    unsigned char r = 255;
-    unsigned char g = 0;
-    unsigned char b = 0;
-    unsigned char a = 255;
-
     struct retro_variable var = { 0 };
-    var.key = "neil_square_color";
+    var.key = "mouse_speed";
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
     {
-        if (!strcmp(var.value, "red"))
-        {
-            r = 255;
-            g = 0;
-            b = 0;
-        }
-        else if (!strcmp(var.value, "yellow"))
-        {
-            r = 252;
-            g = 232;
-            b = 3;
-        }
-        else if (!strcmp(var.value, "green"))
-        {
-            r = 3;
-            g = 252;
-            b = 28;
-        }
-        else if (!strcmp(var.value, "blue"))
-        {
-            r = 97;
-            g = 255;
-            b = 255;
-        }
+        virtualMouseSpeed = atoi(var.value);
     }
-    neil_square_color = r << 16 | g << 8 | b;
-
 }
 
 #define RETRO_DEVICE_JOYPAD_ALT  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
@@ -1095,10 +1065,15 @@ void drawScreen()
 
             //deadzone
             if (gamepadX > 4000 || gamepadX < -4000)
-                virtualMouseX += (int)(gamepadX / 6000.0f);
+                virtualMouseX += ((int)(gamepadX / 6000.0f)) * virtualMouseSpeed;
             if (gamepadY > 4000 || gamepadY < -4000)
-                virtualMouseY += (int)(gamepadY / 6000.0f);
+                virtualMouseY += ((int)(gamepadY / 6000.0f)) * virtualMouseSpeed;
 
+            //bounds
+            if (virtualMouseX < 0) virtualMouseX = 0;
+            if (virtualMouseY < 0) virtualMouseY = 0;
+            if (virtualMouseX > 640) virtualMouseX = 640;
+            if (virtualMouseY > 480) virtualMouseY = 480;
 
             drawVirtualMouse();
         }
