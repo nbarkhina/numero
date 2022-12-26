@@ -1,0 +1,56 @@
+LIBRETRO_COMM_DIR := $(CORE_DIR)/../libretro-common
+INCFLAGS := -I$(CORE_DIR)/../../common -I$(CORE_DIR)/../libretro -I$(LIBRETRO_COMM_DIR)/include -I$(CORE_DIR)/include -I$(CORE_DIR)/core -I$(CORE_DIR)/Interface -I$(CORE_DIR)/hardware -I$(CORE_DIR)/utilities 
+
+
+ifneq (,$(findstring msvc2003,$(platform)))
+INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
+endif
+
+SOURCES_C   := $(CORE_DIR)/../../ezdib/ezdib.c
+
+SOURCES_CXX := $(CORE_DIR)/../libretro/libretronew.cpp \
+    $(CORE_DIR)/core/alu.cpp \
+    $(CORE_DIR)/core/alu_reverse.cpp \
+    $(CORE_DIR)/core/control.cpp \
+    $(CORE_DIR)/core/control_reverse.cpp \
+    $(CORE_DIR)/core/core.cpp \
+    $(CORE_DIR)/core/device.cpp \
+    $(CORE_DIR)/core/indexcb.cpp \
+    $(CORE_DIR)/core/indexcb_reverse.cpp \
+    $(CORE_DIR)/core/reverse_info.cpp \
+    $(CORE_DIR)/hardware/81hw.cpp \
+    $(CORE_DIR)/hardware/83hw.cpp \
+    $(CORE_DIR)/hardware/83phw.cpp \
+    $(CORE_DIR)/hardware/83psehw.cpp \
+    $(CORE_DIR)/hardware/86hw.cpp \
+    $(CORE_DIR)/hardware/colorlcd.cpp \
+    $(CORE_DIR)/hardware/keys.cpp \
+    $(CORE_DIR)/hardware/lcd.cpp \
+    $(CORE_DIR)/hardware/link.cpp \
+    $(CORE_DIR)/Interface/calc.cpp \
+    $(CORE_DIR)/Interface/state.cpp \
+    $(CORE_DIR)/utilities/linksendvar.cpp \
+    $(CORE_DIR)/utilities/savestate.cpp \
+    $(CORE_DIR)/utilities/sendfile.cpp \
+    $(CORE_DIR)/utilities/sound.cpp \
+    $(CORE_DIR)/utilities/var.cpp
+
+ifeq ($(HAVE_NETWORK),1)
+SOURCES_CXX += $(CORE_DIR)/../libretro/net_serial.cpp
+endif
+
+ifeq ($(STATIC_LINKING),1)
+else
+SOURCES_C += $(LIBRETRO_COMM_DIR)/streams/file_stream.c \
+				 $(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c \
+				 $(LIBRETRO_COMM_DIR)/compat/fopen_utf8.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_snprintf.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
+				 $(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+				 $(LIBRETRO_COMM_DIR)/file/file_path.c \
+				 $(LIBRETRO_COMM_DIR)/time/rtime.c \
+				 $(LIBRETRO_COMM_DIR)/string/stdstring.c \
+				 $(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c
+endif
+
