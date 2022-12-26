@@ -75,8 +75,41 @@ typedef int errno_t;
 #define TCHAR char
 #define LPCTSTR const char*
 
+#elif defined(_MACVER)
+#include <assert.h>
+#include <setjmp.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <sys/types.h>
+#include <stddef.h>
+#include <time.h>
+#include <ctype.h>
+#ifdef __cplusplus
+#include <map>
+#endif
 
-#elif defined(__EMSCRIPTEN__)
+typedef int errno_t;
+
+#define MAX_PATH 256
+#define _T(z) z
+#define _tprintf_s printf
+#define ARRAYSIZE(z) (sizeof(z)/sizeof((z)[0]))
+#define _strnicmp strncasecmp
+#define _tcsnicmp strncasecmp
+#define _tcsicmp strcasecmp
+#define _putts puts
+#define _tcsrchr strrchr
+#define _tcscpy_s strcpy
+#define _tcslen strlen
+#define _tcscmp strcmp
+
+
+
+#else
+
 #include <float.h>
 #include <assert.h>
 #include <setjmp.h>
@@ -126,36 +159,5 @@ typedef int errno_t;
 #define fopen_s(pFile,filename,mode) (*(pFile)) = fopen((filename),(mode))
 #define tmpfile_s(pFile) (*(pFile)) = tmpfile()
 #define _tfopen_s fopen_s
-
-#elif defined(_MACVER)
-#include <assert.h>
-#include <setjmp.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <sys/types.h>
-#include <stddef.h>
-#include <time.h>
-#include <ctype.h>
-#ifdef __cplusplus
-#include <map>
-#endif
-
-typedef int errno_t;
-
-#define MAX_PATH 256
-#define _T(z) z
-#define _tprintf_s printf
-#define ARRAYSIZE(z) (sizeof(z)/sizeof((z)[0]))
-#define _strnicmp strncasecmp
-#define _tcsnicmp strncasecmp
-#define _tcsicmp strcasecmp
-#define _putts puts
-#define _tcsrchr strrchr
-#define _tcscpy_s strcpy
-#define _tcslen strlen
-#define _tcscmp strcmp
 
 #endif
