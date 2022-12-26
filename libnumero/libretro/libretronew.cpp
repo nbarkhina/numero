@@ -126,54 +126,11 @@ void PrintDebugOutput(const char* text, ...)
 #endif
 }
 
-void saveMemoryTest()
-{
-
-    const char* tmp = NULL;
-    environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &tmp);
-    std::string fullpath = tmp;
-    fullpath += "/";
-    fullpath += "timemory.sav";
-
-    RFILE* ofile = filestream_open(fullpath.c_str(),
-        RETRO_VFS_FILE_ACCESS_WRITE,
-        RETRO_VFS_FILE_ACCESS_HINT_NONE);
-    filestream_write(ofile, mycalc.mem_c.flash, mycalc.mem_c.flash_size);
-    filestream_close(ofile);
-
-    
-}
-
-void loadMemoryTest()
-{
-
-    const char* tmp = NULL;
-    environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &tmp);
-    std::string fullpath = tmp;
-    fullpath += "/";
-    fullpath += "timemory.sav";
-
-    RFILE* ofile = filestream_open(fullpath.c_str(),
-        RETRO_VFS_FILE_ACCESS_READ,
-        RETRO_VFS_FILE_ACCESS_HINT_NONE);
-    filestream_read(ofile, mycalc.mem_c.flash, mycalc.mem_c.flash_size);
-    filestream_close(ofile);
-
-
-}
-
 void drawButtonHover(struct NeilVirtualButton* button)
 {
 
     if (button->hover)
     {
-        //menuRect.x = button->x;
-        //menuRect.y = button->y;
-        //menuRect.w = button->width;
-        //menuRect.h = button->height;
-
-        //SDL_SetRenderDrawColor(renderer, 50, 255, 50, 255);
-        //SDL_RenderDrawRect(renderer, &menuRect);
 
         int color = 50 << 16 | 255 << 8 | 50;
 
@@ -183,6 +140,7 @@ void drawButtonHover(struct NeilVirtualButton* button)
 
         if (button->pressed)
         {
+            //TODO alpha channel for ezdib
             //SDL_SetRenderDrawColor(renderer, 50, 230, 50, 150);
             //SDL_RenderFillRect(renderer, &menuRect);
         }
@@ -399,17 +357,6 @@ void resetNeilButtons()
 
 }
 
-
-//key_string_t ti83pkeystrings[KEY_STRING_SIZE] = {
-//    { _T("GRAPH"), 6, 0 }, { _T("TRACE"), 6, 1 }, { _T("ZOOM"), 6, 2 }, { _T("WINDOW"), 6, 3 }, { _T("Y="), 6, 4 }, { _T("2ND"), 6, 5 }, { _T("MODE"), 6, 6 }, { _T("DEL"), 6, 7 },
-//    { _T("ON"), 5, 0 }, { _T("STO"), 5, 1 }, { _T("LN"), 5, 2 }, { _T("LOG"), 5, 3 }, { _T("x^2"), 5, 4 }, { _T("x^-1"), 5, 5 }, { _T("MATH"), 5, 6 }, { _T("ALPHA"), 5, 7 },
-//    { _T("0"), 4, 0 }, { _T("1"), 4, 1 }, { _T("4"), 4, 2 }, { _T("7"), 4, 3 }, { _T(","), 4, 4 }, { _T("SIN"), 4, 5 }, { _T("APPS"), 4, 6 }, { _T("X,T,0,n"), 4, 7 },
-//    { _T("."), 3, 0 }, { _T("2"), 3, 1 }, { _T("5"), 3, 2 }, { _T("8"), 3, 3 }, { _T("("), 3, 4 }, { _T("COS"), 3, 5 }, { _T("PRGM"), 3, 6 }, { _T("STAT"), 3, 7 },
-//    { _T("(-)"), 2, 0 }, { _T("3"), 2, 1 }, { _T("6"), 2, 2 }, { _T("9"), 2, 3 }, { _T(")"), 2, 4 }, { _T("TAN"), 2, 5 }, { _T("VARS"), 2, 6 }, { _T(""), 2, 7 },
-//    { _T("ENTER"), 1, 0 }, { _T("+"), 1, 1 }, { _T("-"), 1, 2 }, { _T("x"), 1, 3 }, { _T("/"), 1, 4 }, { _T("^"), 1, 5 }, { _T("CLEAR"), 1, 6 }, { _T(""), 1, 7 },
-//    { _T("DOWN"), 0, 0 }, { _T("LEFT"), 0, 1 }, { _T("RIGHT"), 0, 2 }, { _T("UP"), 0, 3 }, { _T(""), 0, 4 }, { _T(""), 0, 5 }, { _T(""), 0, 6 }, { _T(""), 0, 7 },
-//};
-
 void checkButtons(int* key, int* lastkey, int num1, int num2) {
     if (*key != *lastkey)
     {
@@ -557,13 +504,6 @@ void retro_init(void)
 
     setSaveDir();
 
-    // Create output file name
-
-    // Create image without providing my own buffer
-    //hDib = ezd_create(640, -480, 32, 0);
-
-
-
     // Create image with providing my own buffer
     hDib = ezd_initialize(user_header, sizeof(user_header), 640, -480, 32,
         EZD_FLAG_USER_IMAGE_BUFFER);
@@ -574,14 +514,10 @@ void retro_init(void)
     // Set custom image buffer
     if (!ezd_set_image_buffer(hDib, video_buf, VIDEO_BUFF_SIZE))
     {
-        printf("error initializing buffer\n");
+        printf("error initializing ezd buffer\n");
     }
 
-
-
-
     retro_reset();
-
 
 }
 
@@ -774,8 +710,6 @@ bool retro_load_game(const struct retro_game_info* info)
         if (filestream_exists(getProgressDir()))
         {
             loadState(true);
-            //int time = (&mycalc)->cpu.timer_c->freq / 50;
-            //calc_run_tstates(&mycalc, time*10); //run it for 10 frames
         }
 
         //we support no rom file
@@ -811,14 +745,9 @@ bool retro_load_game(const struct retro_game_info* info)
         }
         
     }
-
     
     //load image bytes from header file
     pngBuffer = stbi_load_from_memory((const stbi_uc*)buttons, 348657, &pngWidth, &pngHeight, &pngBpp, 4);
-
-    
-
-    printf("image loaded\n");
 
    
     static const struct retro_controller_description port_1[] = {
@@ -841,9 +770,6 @@ bool retro_load_game(const struct retro_game_info* info)
         log_cb(RETRO_LOG_ERROR, "XRGB8888 is not supported.\n");
         return false;
     }
-
-    //bool has_gbc_bootloader = file_present_in_system("gbc_bios.bin");
-
     
     check_variables();
 
@@ -910,7 +836,6 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_unload_game()
 {
     saveState(true);
-    printf("unload\n");
 }
 
 unsigned retro_get_region()
@@ -1000,8 +925,6 @@ void drawScreen()
             {
                 if (x < 96 * scaleFactor)
                 {
-                    //dest[dx, dy] = src[dx * src_width / dest_width, dy * src_height / dest_height]
-                    //video_buf[y * VIDEO_WIDTH + x] = screen_converted[cursor] << 16 | screen_converted[cursor + 1] << 8 | screen_converted[cursor + 2];
                     sourceX = (int)(((float)x) * ((float)CALC_WIDTH / float(scaledWidth)));
                     sourceY = (int)(((float)y) * ((float)CALC_HEIGHT / float(scaledHeight)));
                     cursor = ((sourceY * CALC_WIDTH) + sourceX) * 4;
@@ -1098,45 +1021,6 @@ void drawScreen()
 
     }
     
-
-
-    //if (leftPressed) boxX--;
-    //if (rightPressed) boxX++;
-    //if (upPressed) boxY--;
-    //if (downPressed) boxY++;
-    //int boxColor = 0x900000;
-    //if (buttonPressed)
-    //    boxColor = 0x00FF00;
-    // red box
-    //ezd_fill_rect(hDib, boxX, boxY, boxX+100, boxY+100, boxColor);
-
-
-
-    // Random yellow box
-
-    //set everything to black for now
-    //int x = 0;
-    //int y = 0;
-    //unsigned char r = 0;
-    //unsigned char g = 0;
-    //unsigned char b = 0;
-    //unsigned char a = 0;
-    //unsigned int new_color = 0;
-    //for (y = 0; y < VIDEO_HEIGHT; y++)
-    //{
-    //    for (x = 0; x < VIDEO_WIDTH; x++)
-    //    {
-    //        if (buttonPressed)
-    //        {
-    //            video_buf[y * VIDEO_WIDTH + x] = a << 24 | 0 << 16 | 255 << 8 | 0;
-    //        }
-    //        else
-    //        {
-    //            video_buf[y * VIDEO_WIDTH + x] = neil_square_color;
-    //        }
-    //        video_buf[y * VIDEO_WIDTH + x] = ezd_get_pixel(hDib, x, y);
-    //    }
-    //}
 }
 
 int printCounter = 0;
@@ -1282,25 +1166,7 @@ void retro_run()
         //process calculator buttons
         processInput();
 
-        //TODO respond to input changes
-        //update_input_state();
-        //if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A))
-        //    buttonPressed = true;
-        //else
-        //    buttonPressed = false;
-
-
-
-
-        //calc_run_seconds(&mycalc, (double)(1.0f/60.0f));
-        //calc_run_all();
-
-        //active_calc = j;
-        //int speed = mycalc.speed;
-        //time_t time = ((time_t)speed * mycalc.timer_c.freq / FPS / 100) / FRAME_SUBDIVISIONS;
-        //calc_run_tstates(&mycalc, time);
-
-        //TODO NEIL this is the wrong timing was just trying different combinations
+        //TODO this is not the exact timing need to fix
         int time = (&mycalc)->cpu.timer_c->freq / 50;
         calc_run_tstates(&mycalc, time);
 
@@ -1313,10 +1179,6 @@ void retro_run()
     drawScreen();
 
     video_cb(video_buf, VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_PITCH);
-
-    //TODO is it required to send any audio data?
-    //audio_batch_cb(sound_buf.i16, read_avail);
-
 
 }
 
@@ -1349,7 +1211,6 @@ void retro_deinit(void)
     video_buf = NULL;
 }
 
-/* GB STUFF TO REMOVE LATER */
 void cartridge_set_rumble(unsigned active){}
 void retro_cheat_reset(){}
 void retro_cheat_set(unsigned index, bool enabled, const char* code){}
