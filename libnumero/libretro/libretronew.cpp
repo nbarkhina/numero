@@ -662,7 +662,7 @@ void retro_reset()
 static size_t serialize_size = 0;
 size_t retro_serialize_size(void)
 {
-    return 1000000;
+    return 2500000;
 }
 
 const char* getSaveDir()
