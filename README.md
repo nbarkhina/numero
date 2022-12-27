@@ -25,7 +25,7 @@ Here is some useful information to help you run the emulator
 - You can toggle between the calculator view and "Big Mode" with L2
 - Hitting "Restart" in the RetroArch menu will clear the entire memory
   - So be careful when doing this because you will lose all your data
-  - This is useful however sometimes when the emulator hangs for one reason or another and 
+  - This is useful however sometimes when the emulator hangs for one reason or another 
 - Installing Apps
   - You will probably need to install some "loaders" for most of the demanding apps
   - Such as "Ion" or "Mirage"
@@ -33,7 +33,7 @@ Here is some useful information to help you run the emulator
   - After starting you will see a message in the bottom left corner if it imported successfully
   - Then go to "Close Content"
   - Then go again to "Load Content" and install the game you want to run inside of Ion such as "Ztetris.8xp"
-  - Then keep repeating the process to load all the apps you want
+  - Then keep repeating the process to load all the apps you want (careful not to fill up the entire space)
   - Essentially you have to load each piece one on top of another since there is a single common "hard drive" for the calculator
 - Every time you load the emulator you will start from the last place you left off
   - For the same reason mentioned above where it saves in the background
@@ -49,7 +49,7 @@ Here is some useful information to help you run the emulator
 - If you have trouble installing one game or another
   - Try moving things around between Memory and Archive
   - Sometimes different launchers require things not be in Archive
-  - You can also watch this awesome video by LGR where he talks about the phenomenon
+  - You can watch this awesome video by LGR where he talks about the phenomenon
     - https://www.youtube.com/watch?v=nduMTX86Zl0
 
 # References
