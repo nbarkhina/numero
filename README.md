@@ -53,5 +53,5 @@ Here is some useful information to help you run the emulator
     - https://www.youtube.com/watch?v=nduMTX86Zl0
 
 # References
-- Wabbitemu - https://github.com/sputt/wabbitemu
 - wxWabbitEmu - https://github.com/alberthdev/wxwabbitemu
+- Wabbitemu - https://github.com/sputt/wabbitemu
