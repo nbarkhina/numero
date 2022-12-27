@@ -4,7 +4,7 @@
 
 Numero is a libretro core for emulating the TI-83 family of graphing calculators. It is based on the awesome Wabbitemu emulator. It allows you to play your TI-83 games like never before in fullscreen and using a gamepad! You can also control it with a mouse or keyboard, or you can just use the virtual mouse for pressing the calculator buttons.
 
-## Using the core
+# Using the core
 
 Here is some useful information to help you run the emulator
 
@@ -51,3 +51,7 @@ Here is some useful information to help you run the emulator
   - Sometimes different launchers require things not be in Archive
   - You can also watch this awesome video by LGR where he talks about the phenomenon
     - https://www.youtube.com/watch?v=nduMTX86Zl0
+
+# References
+- Wabbitemu - https://github.com/sputt/wabbitemu
+- wxWabbitEmu - https://github.com/alberthdev/wxwabbitemu
