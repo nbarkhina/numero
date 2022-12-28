@@ -377,7 +377,8 @@ TCHAR *symbol_to_string(CPU_t *cpu, symbol83P_t *sym, TCHAR *buffer) {
 			StringCbPrintf(p, 32, _T("*10^%d"), exp);
 			p += _tcslen(p);
 		} else {
-			for (i = min(exp, 0); i < sigdigs || i < (exp + 1); i++) {
+			int min = exp < 0 ? exp : 0;
+			for (i = min; i < sigdigs || i < (exp + 1); i++) {
 				*p++ = (i >= 0 ? FP[i] : 0) + '0';
 				if ((i + 1) < sigdigs && i == exp) {
 					*p++ = '.';

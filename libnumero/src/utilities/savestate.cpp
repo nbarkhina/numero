@@ -450,7 +450,8 @@ void ReadBlock(CHUNK_t* chunk, unsigned char *pnt, int length) {
 	// we do this min because if the length and the chunk are not
 	// the same size we could end up reading bad data. CheckPNT will
 	// handle the error
-	for(i = 0; i < min(length, chunk->size); i++) {
+	int min = length < chunk->size ? length : chunk->size;
+	for(i = 0; i < min; i++) {
 		pnt[i] = chunk->data[i+chunk->pnt];
 	}
 	chunk->pnt += length;

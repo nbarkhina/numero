@@ -42,7 +42,7 @@ Here is some useful information to help you run the emulator
   - You can create as many save states as you want using the different slots
   - However they will be named internally based on how you started the emulator
     - From a rom or just the core itself
-  - There will will be a common "In Progress" storage mechanism when loading different states
+  - There will be a common "In Progress" storage mechanism when loading different states
     - Save States will restore whatever the state was of the entire calculator
     - Including all installed apps at the time of saving
   - Take lots of save states since you may run into problems where you will need to wipe the memory and try again
