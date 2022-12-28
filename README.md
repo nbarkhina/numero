@@ -6,7 +6,7 @@ Numero is a libretro core for emulating the TI-83 family of graphing calculators
 
 # Why did I make this?
 
-The TI-83 is where I first learned how to program in high shcool using the built in TI-Basic language. It was amazing discovering all the cool games people made and were able to get running on this device. There is a huge ecosystem of games and apps that have been created for these calculators over the years that deserve to be preserved and enjoyed by all!
+The TI-83 is where I first learned how to program in high school using the built in TI-Basic language. It was amazing discovering all the cool games people made and were able to get running on this device. There is a huge ecosystem of games and apps that have been created for these calculators over the years that deserve to be preserved and enjoyed by all!
 
 # Using the core
 
@@ -33,7 +33,7 @@ Here is some useful information to help you run the emulator
 - Installing Apps
   - You will probably need to install some "loaders" for most of the demanding apps
   - Such as "Ion" or "Mirage"
-  - You can install "Ion.8xg" by going to Retroarch => Load Content
+  - You can install "Ion.8xg" by going to RetroArch => Load Content
   - After starting you will see a message in the bottom left corner if it imported successfully
   - Then go to "Close Content"
   - Then go again to "Load Content" and install the game you want to run inside of Ion such as "Ztetris.8xp"
