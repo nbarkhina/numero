@@ -835,7 +835,6 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 void retro_unload_game()
 {
-    saveState(true);
 }
 
 unsigned retro_get_region()
