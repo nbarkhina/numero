@@ -8,6 +8,10 @@
 #include "link.h"
 #include "device.h"
 
+#if defined(_WIN32)
+#include <cfloat>
+#endif
+
 #pragma warning(push)
 #pragma warning( disable : 4100 )
 

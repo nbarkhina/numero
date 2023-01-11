@@ -487,10 +487,14 @@ void retro_get_system_av_info(struct retro_system_av_info* info)
 
 static void log_null(enum retro_log_level level, const char* fmt, ...) {}
 
-
+struct retro_perf_callback perf_cb;
+bool hasPerf = false;
 
 void retro_init(void)
 {
+
+    hasPerf = environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb);
+
     struct retro_log_callback log;
 
     if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
@@ -1047,8 +1051,45 @@ void toast_message(char* message)
     environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
 }
 
+double fpsInterval = 1000.0 / 60.0;
+uint64_t fpsThen = 0; //time in milliseconds
+uint64_t fpsNow = 0; //time in milliseconds
+int fpsFrameCounter = 0;
+int fpsAudioRemaining = 0; //used to keep relieve some audio when emulator is running too fast
+
+bool IsFrameReady() {
+
+    retro_time_t time = perf_cb.get_time_usec(); //get time in microseconds
+    fpsNow = time / 1000;
+    int elapsed = fpsNow - fpsThen;
+    bool ready = true;
+
+    int shouldBeFrames = (int)((double)elapsed / fpsInterval);
+    if (fpsFrameCounter > shouldBeFrames)
+    {
+        ready = false;
+    }
+
+    if (ready)
+        fpsFrameCounter++;
+
+    //reset
+    if (elapsed > 1000)
+    {
+        fpsThen = fpsNow;
+        fpsFrameCounter = 0;
+    }
+
+    return ready;
+}
+
+
 void retro_run()
 {
+    //this would enforce 60FPS
+    //if (hasPerf && !IsFrameReady())
+    //    return;
+
     resetNeilButtons();
 
     if (hasBios)

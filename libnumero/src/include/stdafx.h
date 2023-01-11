@@ -10,7 +10,7 @@
 #define STRICT
 #endif
 
-#include <Windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,13 +26,14 @@
 #include <vector>
 #include <string.h>
 #include "resource.h"
+#define STRSAFE_NO_DEPRECATE
 #include <strsafe.h>
 
 #include <csetjmp>
 //#include <setjmpex.h>
-#define setjmp  _setjmp
-#define longjmp longjmp
-
+// #define setjmp  _setjmp
+// #define longjmp longjmp
+#include <setjmp.h>
 
 
 typedef void* LPVOID;
