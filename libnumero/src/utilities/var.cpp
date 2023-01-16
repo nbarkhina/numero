@@ -22,6 +22,39 @@ const char txt86[] = "Already Installed";
 	}
 
 
+#ifdef WIIU
+/* Pretty much strncasecmp. */
+int strncasecmp(const char *a, const char *b, size_t n)
+{
+   size_t i;
+
+   for (i = 0; i < n; i++)
+   {
+      int a_lower = tolower(a[i]);
+      int b_lower = tolower(b[i]);
+      if (a_lower != b_lower)
+         return a_lower - b_lower;
+   }
+
+   return 0;
+}
+
+int strcasecmp (const char *s1, const char *s2)
+{
+  const unsigned char *p1 = (const unsigned char *) s1;
+  const unsigned char *p2 = (const unsigned char *) s2;
+  int result;
+  if (p1 == p2)
+    return 0;
+  while ((result = tolower (*p1) - tolower (*p2++)) == 0)
+    if (*p1++ == '\0')
+      break;
+  return result;
+}
+
+#endif
+
+
 int CmpStringCase(const char *str1, unsigned char *str2) {
 	return _strnicmp(str1, (char *) str2, strlen(str1));
 }
