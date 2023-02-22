@@ -1092,8 +1092,8 @@ bool IsFrameReady() {
 void retro_run()
 {
     //this would enforce 60FPS
-    //if (hasPerf && !IsFrameReady())
-    //    return;
+    if (hasPerf && !IsFrameReady())
+       return;
 
     resetNeilButtons();
 
