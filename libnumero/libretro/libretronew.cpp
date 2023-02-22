@@ -38,6 +38,7 @@
 #include "83phw.h"
 #include "device.h"
 #include "var.h"
+#include "lcd.h"
 #include "neil_controller.h"
 
 
@@ -72,6 +73,7 @@ bool bigMode = false;
 bool lastBigModePressed = false;
 bool gamingButtons = false;
 bool hasBios = false;
+unsigned char* calcScreen = NULL;
 
 #define VIDEO_WIDTH 640
 #define VIDEO_HEIGHT 480
@@ -504,6 +506,9 @@ void retro_init(void)
 
     video_buf = (uint32_t*)malloc(VIDEO_BUFF_SIZE);
 
+    calcScreen = (unsigned char*)malloc(GRAY_DISPLAY_SIZE);
+    ZeroMemory(calcScreen, GRAY_DISPLAY_SIZE);
+
     initVirtualButtons();
 
     setSaveDir();
@@ -877,7 +882,7 @@ void determineVirtualOrRegularMouseMode()
     }
 }
 
-char textBuffer[100];
+char textBuffer[500];
 
 void drawVirtualMouse()
 {
@@ -1238,8 +1243,10 @@ void retro_deinit(void)
 
 #ifdef _3DS
     linearFree(video_buf);
+    linearFree(calcScreen);
 #else
     free(video_buf);
+    free(calcScreen);
 #endif
 
     ezd_destroy(hDib);

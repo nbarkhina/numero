@@ -406,17 +406,9 @@ void LCD_clear(LCD_t *lcd) {
 }
 
 //Neil - reuse screen instead of calling malloc every frame
-unsigned char* screen = NULL;
-bool screen_allocated = false;
+extern unsigned char* calcScreen;
 
 unsigned char *LCD_update_image(LCD_t *lcd) {
-	if (!screen_allocated)
-	{
-		screen = (unsigned char*)malloc(GRAY_DISPLAY_SIZE);
-		ZeroMemory(screen, GRAY_DISPLAY_SIZE);
-		screen_allocated = true;
-	}
-	
 
 	int bits = 0;
 	int n = lcd->shades;
@@ -459,7 +451,7 @@ unsigned char *LCD_update_image(LCD_t *lcd) {
 				p0 += u;
 			}
 			
-			unsigned char *scol = &screen[row * LCD_WIDTH + col * 8];
+			unsigned char *scol = &calcScreen[row * LCD_WIDTH + col * 8];
 			scol[0] = (unsigned char)(alpha_overlay + TRUCOLOR(p0, bits) * inverse_alpha / 100);
 			scol[1] = (unsigned char)(alpha_overlay + TRUCOLOR(p1, bits) * inverse_alpha / 100);
 			scol[2] = (unsigned char)(alpha_overlay + TRUCOLOR(p2, bits) * inverse_alpha / 100);
@@ -471,7 +463,7 @@ unsigned char *LCD_update_image(LCD_t *lcd) {
 		}
 	}
 
-	return screen;
+	return calcScreen;
 }
 
 /* 
@@ -481,11 +473,6 @@ unsigned char *LCD_update_image(LCD_t *lcd) {
  */
 unsigned char* LCD_image(LCDBase_t *lcdBase) {
 	LCD_t *lcd = (LCD_t *)lcdBase;
-	if (lcdBase->active == FALSE) {
-		unsigned char *screen = (unsigned char *)malloc(GRAY_DISPLAY_SIZE);
-		ZeroMemory(screen, GRAY_DISPLAY_SIZE);
-		return screen;
-	}
 
 	return LCD_update_image(lcd);
 }
