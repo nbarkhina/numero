@@ -618,6 +618,10 @@ extern "C" {
 #define stbi_inline __forceinline
 #endif
 
+if defined(IOS)
+#define STBI_NO_THREAD_LOCALS
+#endif
+
 #ifndef STBI_NO_THREAD_LOCALS
 #if defined(__cplusplus) &&  __cplusplus >= 201103L
 #define STBI_THREAD_LOCAL       thread_local
