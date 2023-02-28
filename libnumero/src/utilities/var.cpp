@@ -22,7 +22,7 @@ const char txt86[] = "Already Installed";
 	}
 
 
-#ifdef WIIU
+#if defined(WIIU) || defined(__SWITCH__)
 /* Pretty much strncasecmp. */
 int strncasecmp(const char *a, const char *b, size_t n)
 {
