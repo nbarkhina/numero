@@ -618,7 +618,7 @@ extern "C" {
 #define stbi_inline __forceinline
 #endif
 
-#if defined(IOS)
+#if defined(IOSVERSION)
 #define STBI_NO_THREAD_LOCALS
 #endif
 

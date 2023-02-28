@@ -195,6 +195,7 @@ else ifneq (,$(findstring ios,$(platform)))
       PLATFORM_DEFINES := -miphoneos-version-min=5.0
    endif
    HAVE_NETWORK=1
+   DEFINES += -DIOSVERSION
 
 # tvOS
 else ifeq ($(platform), tvos-arm64)
