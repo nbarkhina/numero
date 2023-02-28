@@ -188,14 +188,13 @@ else ifneq (,$(findstring ios,$(platform)))
    ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
       CC += -miphoneos-version-min=8.0
       CXX += -miphoneos-version-min=8.0
-      PLATFORM_DEFINES := -miphoneos-version-min=8.0
+      PLATFORM_DEFINES := -miphoneos-version-min=8.0 -DIOSVERSION
    else
       CC += -miphoneos-version-min=5.0
       CXX += -miphoneos-version-min=5.0
-      PLATFORM_DEFINES := -miphoneos-version-min=5.0
+      PLATFORM_DEFINES := -miphoneos-version-min=5.0 -DIOSVERSION
    endif
    HAVE_NETWORK=1
-   DEFINES += -DIOSVERSION
 
 # tvOS
 else ifeq ($(platform), tvos-arm64)
