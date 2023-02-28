@@ -140,8 +140,8 @@ typedef int errno_t;
 // #ifndef min
 // #define min(a,b)            (((a) < (b)) ? (a) : (b))
 // #endif
-#define _strnicmp strncasecmp
-#define _tcsicmp strcasecmp
+#define _strnicmp my_strncasecmp
+#define _tcsicmp my_strcasecmp
 #define _putts puts
 #define _tcsrchr strrchr
 #define _tcscpy_s(dest, len, src) strcpy(dest, src)

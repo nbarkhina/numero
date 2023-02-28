@@ -22,9 +22,8 @@ const char txt86[] = "Already Installed";
 	}
 
 
-#if defined(WIIU) || defined(__SWITCH__)
 /* Pretty much strncasecmp. */
-int strncasecmp(const char *a, const char *b, size_t n)
+int my_strncasecmp(const char *a, const char *b, size_t n)
 {
    size_t i;
 
@@ -39,7 +38,7 @@ int strncasecmp(const char *a, const char *b, size_t n)
    return 0;
 }
 
-int strcasecmp (const char *s1, const char *s2)
+int my_strcasecmp (const char *s1, const char *s2)
 {
   const unsigned char *p1 = (const unsigned char *) s1;
   const unsigned char *p2 = (const unsigned char *) s2;
@@ -52,7 +51,6 @@ int strcasecmp (const char *s1, const char *s2)
   return result;
 }
 
-#endif
 
 
 int CmpStringCase(const char *str1, unsigned char *str2) {
