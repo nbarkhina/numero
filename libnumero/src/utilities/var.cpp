@@ -376,7 +376,9 @@ TIFILE_t* ImportROMFile(RFILE *infile, TIFILE_t *tifile) {
 	filestream_read(infile, tifile->rom->data, size);
 	tifile->rom->size		= (int)size;
 	calc = FindRomVersion(tifile->rom->version, tifile->rom->data, (int)size);
-	debugText += std::to_string(calc);
+	char tempText[50];
+	sprintf( tempText, "%d", calc );
+	debugText += tempText;
 	debugText += " ";
 	if (calc == INVALID_MODEL) {
 		return FreeTiFile(tifile);
@@ -741,7 +743,9 @@ TIFILE_t* importvar(LPCTSTR filePath, BOOL only_check_header) {
 	int fsize = filestream_tell(infile);
 	filestream_seek(infile, 0, SEEK_SET);  /* same as rewind(f); */
 
-	debugText += std::to_string(fsize);
+	char tempText[50];
+	sprintf( tempText, "%d", fsize );
+	debugText += tempText;
 	debugText += " ";
 
 	if (infile == NULL) {
