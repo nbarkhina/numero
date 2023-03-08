@@ -19,7 +19,6 @@
 
 #include <string>
 #include <cstring>
-extern std::string debugText;
 
 #pragma warning(push)
 #pragma warning( disable : 4100 )
@@ -380,14 +379,10 @@ BOOL rom_load(LPCALC lpCalc, LPCTSTR FileName) {
 			case TI_84PSE:
 			case TI_83PSE:
 				myerror = calc_init_83pse(lpCalc);
-				debugText += std::to_string(myerror);
-				debugText += " ";
 				memcpy(	lpCalc->cpu.mem_c->flash,
 						tifile->rom->data,
 						(lpCalc->cpu.mem_c->flash_size<=tifile->rom->size)?lpCalc->cpu.mem_c->flash_size:tifile->rom->size);
 				calc_erase_certificate(lpCalc->cpu.mem_c->flash,lpCalc->cpu.mem_c->flash_size);
-				debugText += std::to_string(lpCalc->cpu.mem_c->flash[0]);
-				debugText += " ";
 				break;
 			case TI_84PCSE:
 				calc_init_84pcse(lpCalc);

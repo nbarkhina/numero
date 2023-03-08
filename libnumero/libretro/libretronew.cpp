@@ -4,8 +4,6 @@
 #include "libretro.cpp"
 #else
 
-#define DEBUG2
-
 
 //using STB library to load the PNG files
 #define STB_IMAGE_IMPLEMENTATION
@@ -43,8 +41,8 @@
 #include "neil_controller.h"
 
 std::string debugText;
-int cpuCounter = 0;
 calc_t mycalc;
+bool debugMode = false;
 #define FRAME_SUBDIVISIONS 1024
 
 #ifdef _3DS
@@ -496,7 +494,6 @@ bool hasPerf = false;
 
 void retro_init(void)
 {
-    cpuCounter = 0;
     debugText = "";
     hasPerf = environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb);
 
@@ -603,11 +600,6 @@ void retro_reset()
 
         bool loaded = rom_load(&mycalc, fullpath.c_str());
 
-        if (loaded)
-        {
-            debugText += "1";
-            debugText += " ";
-        }
 
         calc_turn_on(&mycalc);
 
@@ -710,6 +702,13 @@ static void check_variables(void)
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
     {
         virtualMouseSpeed = atoi(var.value);
+    }
+
+    struct retro_variable var2 = { 0 };
+    var2.key = "debug_mode";
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var2) && var2.value)
+    {
+        debugMode = atoi(var2.value);
     }
 }
 
@@ -995,10 +994,12 @@ void drawScreen()
                 if (downPressed) gamepadY = 15000;
             }
 
-#ifdef DEBUG2
-            sprintf(textBuffer, "DEBUG: %s", debugText.c_str());
-            ezd_text(hDib, hFont, textBuffer, -1, 10, 210, 0xffffff);
-#endif
+            if (debugMode)
+            {
+                sprintf(textBuffer, "DEBUG: %s", debugText.c_str());
+                ezd_text(hDib, hFont, textBuffer, -1, 10, 210, 0xffffff);
+            }
+            
 
             //deadzone
             if (gamepadX > 4000 || gamepadX < -4000)

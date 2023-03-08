@@ -71,6 +71,20 @@ extern "C" {
          },
          "1"
       },
+      {
+         "debug_mode",
+         "Enable Debug Mode",
+         NULL,
+         "Display some debug information on the screen.",
+         NULL,
+         NULL,
+         {
+            { "0", "Off" },
+            { "1", "On" },
+            { NULL, NULL },
+         },
+         "0"
+      },
       { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
    };
 

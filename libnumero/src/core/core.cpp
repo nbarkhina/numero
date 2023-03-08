@@ -18,8 +18,6 @@
 
 #include <string>
 #include <cstring>
-extern int cpuCounter;
-extern std::string debugText;
 
 #define FLASH_BYTE_PROGRAM 0xA0
 #define FLASH_BYTE_ERASE 0x80
@@ -858,13 +856,6 @@ static void CPU_opcode_run(CPU_t *cpu) {
 		opcode_reverse_info[cpu->bus](cpu);
 	}
 #endif
-	if (cpuCounter == 0 || cpuCounter == 50 || cpuCounter == 100 || cpuCounter == 150 || cpuCounter == 200
-		|| cpuCounter == 250 || cpuCounter == 300 || cpuCounter == 350 || cpuCounter == 400)
-	{
-		debugText += std::to_string(cpu->bus);
-		debugText +=  " ";
-	}
-	cpuCounter++;
 
 	const int time = opcode[cpu->bus](cpu);
 	if (time != 0) {
