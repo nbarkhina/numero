@@ -4,7 +4,8 @@
 #include "libretro.cpp"
 #else
 
-// #define DEBUG2
+#define DEBUG2
+
 
 //using STB library to load the PNG files
 #define STB_IMAGE_IMPLEMENTATION
@@ -41,7 +42,8 @@
 #include "lcd.h"
 #include "neil_controller.h"
 
-
+std::string debugText;
+int cpuCounter = 0;
 calc_t mycalc;
 #define FRAME_SUBDIVISIONS 1024
 
@@ -494,7 +496,8 @@ bool hasPerf = false;
 
 void retro_init(void)
 {
-
+    cpuCounter = 0;
+    debugText = "";
     hasPerf = environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb);
 
     struct retro_log_callback log;
@@ -588,6 +591,9 @@ void retro_reset()
 
     if (has_ti_rom)
     {
+        debugText += rom_name;
+        debugText += " ";
+
         const char* systemdirtmp = NULL;
         environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &systemdirtmp);
 
@@ -595,7 +601,13 @@ void retro_reset()
         fullpath += "/";
         fullpath += rom_name;
 
-        rom_load(&mycalc, fullpath.c_str());
+        bool loaded = rom_load(&mycalc, fullpath.c_str());
+
+        if (loaded)
+        {
+            debugText += "1";
+            debugText += " ";
+        }
 
         calc_turn_on(&mycalc);
 
@@ -718,7 +730,7 @@ bool retro_load_game(const struct retro_game_info* info)
     {
         if (filestream_exists(getProgressDir()))
         {
-            loadState(true);
+           loadState(true);
         }
 
         //we support no rom file
@@ -984,14 +996,8 @@ void drawScreen()
             }
 
 #ifdef DEBUG2
-            sprintf(textBuffer, "MouseX: %d MouseY: %d Pressed: %d", mouseX, mouseY, mousePressed);
-            ezd_text(hDib, hFont, textBuffer, -1, 10, 310, 0xffffff);
-
-            sprintf(textBuffer, "PointerX: %d PointerY: %d Pressed: %d", mousePointerX, mousePointerY, mousePointerPressed);
-            ezd_text(hDib, hFont, textBuffer, -1, 10, 340, 0xffffff);
-
-            sprintf(textBuffer, "GamepadX: %d GamepadY: %d", gamepadX, gamepadY);
-            ezd_text(hDib, hFont, textBuffer, -1, 10, 370, 0xffffff);
+            sprintf(textBuffer, "DEBUG: %s", debugText.c_str());
+            ezd_text(hDib, hFont, textBuffer, -1, 10, 210, 0xffffff);
 #endif
 
             //deadzone

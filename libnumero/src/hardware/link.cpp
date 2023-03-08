@@ -55,7 +55,7 @@ int link_disconnect(CPU_t *cpu) {
 }
 
 /* Run a number of tstates */
-void link_wait(CPU_t *cpu, time_t tstates) {
+void link_wait(CPU_t *cpu, uint64_t tstates) {
 	uint64_t time_end = cpu->timer_c->tstates + tstates;
 
 	while (cpu->timer_c->tstates < time_end) {
@@ -65,11 +65,11 @@ void link_wait(CPU_t *cpu, time_t tstates) {
 
 /* Send a byte through the virtual link
  * On error: Throws a Byte Exception */
-static void link_send(CPU_t *cpu, unsigned char byte) {
+static void link_send(CPU_t *cpu, u_char byte) {
 	link_t *link = cpu->pio.link;
-	unsigned int i;
+	u_int i;
 
-	for (unsigned int bit = 0; bit < 8; bit++, byte >>= 1) {
+	for (u_int bit = 0; bit < 8; bit++, byte >>= 1) {
 		link->vout = (byte & 1) + 1;
 
 		for (i = 0; i < LINK_TIMEOUT && vlink(link) != 0; i += LINK_STEP)
@@ -89,12 +89,12 @@ static void link_send(CPU_t *cpu, unsigned char byte) {
 
 /* Receive a byte through the virtual link
 * On error: Throws a Byte Exception */
-static unsigned char link_recv(CPU_t *cpu) {
+static u_char link_recv(CPU_t *cpu) {
 	link_t *link = cpu->pio.link;
-	unsigned char byte = 0;
-	unsigned int i;
+	u_char byte = 0;
+	u_int i;
 
-	for (unsigned int bit = 0; bit < 8; bit++) {
+	for (u_int bit = 0; bit < 8; bit++) {
 		byte >>= 1;
 
 		for (i = 0; i < LINK_TIMEOUT && vlink(link) == 3; i += LINK_STEP)
@@ -127,14 +127,14 @@ static unsigned char link_recv(CPU_t *cpu) {
 static uint16_t link_chksum(const void *data, size_t length) {
 	uint16_t chksum = 0;
 	for (size_t i = 0; i < length; i++)
-		chksum += ((unsigned char *) data)[i];
+		chksum += ((u_char *) data)[i];
 
 	return chksum;
 }
 
 /* Returns a Machine ID for the calc attached to virtual link
  * On error: Returns -1 */
-static unsigned char link_target_ID(const CPU_t *cpu) {
+static u_char link_target_ID(const CPU_t *cpu) {
 	switch (cpu->pio.model) {
 	case TI_73:
 		return 0x07;
@@ -162,7 +162,7 @@ static unsigned char link_target_ID(const CPU_t *cpu) {
 void link_send_bytes(CPU_t *cpu, void *data, size_t length) {
 	size_t i;
 	for (i = 0; i < length; i++)
-		link_send(cpu, ((unsigned char*) data)[i]);
+		link_send(cpu, ((u_char*) data)[i]);
 }
 
 /*
@@ -172,12 +172,12 @@ void link_send_bytes(CPU_t *cpu, void *data, size_t length) {
 void link_recv_bytes(CPU_t *cpu, void *data, size_t length) {
 	size_t i;
 	for (i = 0; i < length; i++)
-		((unsigned char*) data)[i] = link_recv(cpu);
+		((u_char*) data)[i] = link_recv(cpu);
 }
 
 /* Send a TI packet over the virtual link
  * On error: Throws a Packet Exception */
-void link_send_pkt(CPU_t *cpu, unsigned char command_ID, void *data) {
+void link_send_pkt(CPU_t *cpu, u_char command_ID, void *data) {
 	TI_PKTHDR hdr;
 	uint16_t data_len;
 
@@ -235,7 +235,7 @@ void link_send_pkt(CPU_t *cpu, unsigned char command_ID, void *data) {
 	if (command_ID != CID_DATA) {
 		int i;
 		for (i = 0; i < data_len; i++) {
-			printf("%02x ", ((unsigned char *) data)[i]);
+			printf("%02x ", ((u_char *) data)[i]);
 		}
 	}
 	putchar('\n');
@@ -263,7 +263,7 @@ void link_send_pkt(CPU_t *cpu, unsigned char command_ID, void *data) {
 
 /* Receive a TI packet over the virtual link (blocking)
  * On error: Throws a Packet Exception */
-void link_recv_pkt(CPU_t *cpu, TI_PKTHDR *hdr, unsigned char *data) {
+void link_recv_pkt(CPU_t *cpu, TI_PKTHDR *hdr, u_char *data) {
 	int err;
 	switch (err = setjmp(exc_byte)) {
 	case 0:

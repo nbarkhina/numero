@@ -7,6 +7,11 @@
 #endif
 #include <streams/file_stream.h>
 
+
+#include <string>
+#include <cstring>
+extern std::string debugText;
+
 const char self_test[] = "Self Test?";
 const char catalog[] = "CATALOG";
 const char txt73[] = "GRAPH  EXPLORER  SOFTWARE";
@@ -371,6 +376,8 @@ TIFILE_t* ImportROMFile(RFILE *infile, TIFILE_t *tifile) {
 	filestream_read(infile, tifile->rom->data, size);
 	tifile->rom->size		= (int)size;
 	calc = FindRomVersion(tifile->rom->version, tifile->rom->data, (int)size);
+	debugText += std::to_string(calc);
+	debugText += " ";
 	if (calc == INVALID_MODEL) {
 		return FreeTiFile(tifile);
 	}
@@ -689,6 +696,7 @@ TIFILE_t* ImportVarData(RFILE *infile, TIFILE_t *tifile) {
 	}	
 }
 
+
 TIFILE_t* importvar(LPCTSTR filePath, BOOL only_check_header) {
 	RFILE *infile = NULL;
 	TIFILE_t *tifile;
@@ -728,6 +736,13 @@ TIFILE_t* importvar(LPCTSTR filePath, BOOL only_check_header) {
 	infile = filestream_open(filePath,
 		RETRO_VFS_FILE_ACCESS_READ,
 		RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+	filestream_seek(infile, 0, SEEK_END);
+	int fsize = filestream_tell(infile);
+	filestream_seek(infile, 0, SEEK_SET);  /* same as rewind(f); */
+
+	debugText += std::to_string(fsize);
+	debugText += " ";
 
 	if (infile == NULL) {
 		return FreeTiFile(tifile);

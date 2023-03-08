@@ -67,10 +67,9 @@ void Modify_interrupt_device(CPU_t *cpu, unsigned char port, unsigned char skip)
 }
 
 void handle_pio(CPU_t *cpu) {
-	interrupt_t *intVal;
 	pio_context_t *pio = &cpu->pio;
 	for (int i = pio->num_interrupt - 1; i >= 0; i--) {
-		intVal = &pio->interrupt[i];
+		interrupt_t *intVal = &pio->interrupt[i];
 		if (--intVal->skip_count == 0) {
 			device_t *device = intVal->device;
 			if (device != NULL && device->active) {
