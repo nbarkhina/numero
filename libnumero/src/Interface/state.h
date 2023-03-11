@@ -5,11 +5,11 @@
 
 typedef struct apphdr {
 	TCHAR name[12];
-	unsigned int page, page_count;
+	u_int page, page_count;
 } apphdr_t;
 
 typedef struct applist {
-	unsigned int count;
+	u_int count;
 	apphdr_t apps[255];
 } applist_t;
 
@@ -28,7 +28,7 @@ typedef struct symlist {
 	symbol83P_t *programs;
 	symbol83P_t *last;
 	symbol83P_t symbols[2048];
-	unsigned int count;
+	u_int count;
 } symlist_t;
 
 // 83p
@@ -43,10 +43,10 @@ typedef struct symlist {
 #define VAT_END			0xD298
 
 typedef struct upages {
-	unsigned int start, end;
+	u_int start, end;
 } upages_t;
 
-#define circ10(z) ((((unsigned char) z) < 10) ? ((z) + 1) % 10 : (z))
+#define circ10(z) ((((u_char) z) < 10) ? ((z) + 1) % 10 : (z))
 #define tAns	0x72
 
 void state_build_applist(CPU_t *, applist_t *);
@@ -56,7 +56,7 @@ symlist_t *state_build_symlist_83P(CPU_t *, symlist_t *);
 TCHAR *GetRealAns(CPU_t *, TCHAR *);
 TCHAR *Symbol_Name_to_String(int model, symbol83P_t *symbol, TCHAR * buffer, int bufferSize);
 TCHAR *App_Name_to_String(apphdr_t *, TCHAR *);
-unsigned char find_field(unsigned char *dest, unsigned char id1, unsigned char id2, unsigned char **output);
-unsigned int get_page_size(unsigned char *dest);
+u_char find_field(u_char *dest, u_char id1, u_char id2, u_char **output);
+u_int get_page_size(u_char *dest);
 
 #endif /*STATE_H_*/

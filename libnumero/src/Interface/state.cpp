@@ -8,7 +8,7 @@ TCHAR *symbol_to_string(CPU_t *, symbol83P_t *, TCHAR *);
 
 // output contains field data
 // returns field size
-unsigned char find_field(unsigned char *dest, unsigned char id1, unsigned char id2, unsigned char **output) {
+u_char find_field(u_char *dest, u_char id1, u_char id2, u_char **output) {
 	for (int i = 0; i < PAGE_SIZE; i++) {
 		if (dest[i] == id1 && (dest[i + 1] & 0xF0) == (id2 & 0xF0)) {
 			if (output != NULL) {
@@ -29,7 +29,7 @@ unsigned char find_field(unsigned char *dest, unsigned char id1, unsigned char i
 * Finds the page size identifier and returns the number of pages specified.
 * If the identifiers cannot be found, 0 is returned.
 */
-unsigned int get_page_size(unsigned char *dest) {
+u_int get_page_size(u_char *dest) {
 	find_field(dest, 0x80, 0x80, &dest);
 	if (dest == NULL) {
 		return 0;
@@ -49,7 +49,7 @@ void state_build_applist(CPU_t *cpu, applist_t *applist) {
 	}
 
 	if (cpu->mem_c->flash == NULL) return;
-	unsigned char (*flash)[PAGE_SIZE] = (unsigned char (*)[PAGE_SIZE]) cpu->mem_c->flash;
+	u_char (*flash)[PAGE_SIZE] = (u_char (*)[PAGE_SIZE]) cpu->mem_c->flash;
 
 	// fetch the userpages for this model
 	upages_t upages;
@@ -60,7 +60,7 @@ void state_build_applist(CPU_t *cpu, applist_t *applist) {
 	
 	// Starting at the first userpage, search for all the apps
 	// As soon as page doesn't have one, you're done
-	unsigned int page, page_size;
+	u_int page, page_size;
 	for (	page = upages.start, applist->count = 0;
 			page >= upages.end &&
 			applist->count < ARRAYSIZE(applist->apps) &&
@@ -72,9 +72,8 @@ void state_build_applist(CPU_t *cpu, applist_t *applist) {
 	{
 		
 		apphdr_t *ah = &applist->apps[applist->count];
-		unsigned char *appName;
+		u_char *appName;
 		int nameLen = find_field(flash[page], 0x80, 0x40, &appName);
-		//TODO NEIL this was #ifdef _UNICODE
 #ifdef DONTDOTHIS
 		char nameBuffer[12] = { 0 };
 		StringCbCopyNA(nameBuffer, sizeof(nameBuffer), (char *) appName, nameLen);
@@ -172,7 +171,7 @@ symlist_t* state_build_symlist_83P(CPU_t *cpu, symlist_t *symlist) {
 		sym->page			= mem_read(mem, stp--);
 		sym->length			= mem_read(mem, sym->address - 1) + (mem_read(mem, sym->address) << 8);
 		
-		unsigned int i;
+		u_int i;
 		// Variables, pics, etc
 		if (stp > prog) {
 			for (i = 0; i < 3; i++) sym->name[i] = mem_read(mem, stp--);
@@ -254,7 +253,7 @@ TCHAR *Symbol_Name_to_String(int model, symbol83P_t *sym, TCHAR *buffer, int buf
 				return buffer;
 			case ListObj:
 			case CListObj:
-				if ((unsigned char) sym->name[1] < 6) {
+				if ((u_char) sym->name[1] < 6) {
 					StringCbPrintf(buffer, bufferSize, _T("L%d"), sym->name[1] + 1); //L1...L6
 				} else {
 					StringCbPrintf(buffer, bufferSize, _T("%s"), sym->name + 1); // No Little L
@@ -275,7 +274,7 @@ TCHAR *Symbol_Name_to_String(int model, symbol83P_t *sym, TCHAR *buffer, int buf
 						return NULL;
 					}
 			
-					unsigned char b = sym->name[1] & 0x0F;
+					u_char b = sym->name[1] & 0x0F;
 					switch(sym->name[1] & 0xF0) {
 						case 0x10: //Y1
 							StringCbPrintf(buffer, bufferSize, _T("Y%d"), circ10(b));
@@ -314,6 +313,10 @@ TCHAR *Symbol_Name_to_String(int model, symbol83P_t *sym, TCHAR *buffer, int buf
 
 TCHAR *GetRealAns(CPU_t *cpu, TCHAR *buffer) {
 	symlist_t *symlist = (symlist_t *) malloc(sizeof(symlist_t));
+	if (!symlist) {
+		return NULL;
+	}
+
 	memset(symlist, 0, sizeof(symlist_t));
 	symlist = state_build_symlist_83P(cpu, symlist);
 	if (symlist == NULL) {
@@ -347,10 +350,10 @@ TCHAR *symbol_to_string(CPU_t *cpu, symbol83P_t *sym, TCHAR *buffer) {
 			exp = 128;
 		}
 		
-		unsigned char FP[14];
+		u_char FP[14];
 		int i, sigdigs = 1;
 		for (i = 0; i < 14; i += 2, ptr++) {
-			unsigned char next_byte = mem_read(cpu->mem_c, ptr);
+			u_char next_byte = mem_read(cpu->mem_c, ptr);
 			FP[i] = next_byte >> 4;
 			FP[i + 1] = next_byte & 0x0F;
 			if (FP[i]) {
@@ -377,7 +380,7 @@ TCHAR *symbol_to_string(CPU_t *cpu, symbol83P_t *sym, TCHAR *buffer) {
 			StringCbPrintf(p, 32, _T("*10^%d"), exp);
 			p += _tcslen(p);
 		} else {
-			int min = exp < 0 ? exp : 0;
+         int min = exp < 0 ? exp : 0;
 			for (i = min; i < sigdigs || i < (exp + 1); i++) {
 				*p++ = (i >= 0 ? FP[i] : 0) + '0';
 				if ((i + 1) < sigdigs && i == exp) {
@@ -407,7 +410,7 @@ TCHAR *symbol_to_string(CPU_t *cpu, symbol83P_t *sym, TCHAR *buffer) {
 		elem.type_ID 	= sym->type_ID - 1;
 		elem.page 		= 0;
 		
-		unsigned int i, size = mem_read16(cpu->mem_c, sym->address);
+		u_int i, size = mem_read16(cpu->mem_c, sym->address);
 		TCHAR *p = buffer;
 		*p++ = '{';
 		
@@ -430,9 +433,9 @@ TCHAR *symbol_to_string(CPU_t *cpu, symbol83P_t *sym, TCHAR *buffer) {
 		elem.type_ID 	= RealObj;
 		elem.page 		= 0;
 		
-		unsigned int cols = mem_read(cpu->mem_c, sym->address);
-		unsigned int rows = mem_read(cpu->mem_c, sym->address + 1);
-		unsigned int i, j;
+		u_int cols = mem_read(cpu->mem_c, sym->address);
+		u_int rows = mem_read(cpu->mem_c, sym->address + 1);
+		u_int i, j;
 		TCHAR *p = buffer;
 		
 		*p++ = '[';
@@ -464,7 +467,7 @@ TCHAR *symbol_to_string(CPU_t *cpu, symbol83P_t *sym, TCHAR *buffer) {
 		uint16_t ptr = sym->address;
 		uint16_t str_len = mem_read(cpu->mem_c, ptr++);
 		str_len += mem_read(cpu->mem_c, ptr++) << 8;
-		unsigned int i;
+		u_int i;
 		for (i = 0; i < str_len; i++) {
 			buffer[i] = mem_read(cpu->mem_c, ptr++);
 		}

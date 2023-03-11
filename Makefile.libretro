@@ -742,6 +742,12 @@ CXXFLAGS += $(INCFLAGS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $(OBJOUT)$@ $<
 
+clean_android:
+	rm -f $(OBJECTS) $(TARGET)
+	rm -r libnumero/libretro/libs
+	rm -r libnumero/libretro/obj
+	rm numero_libretro_android.so
+
 clean:
 	rm -f $(OBJECTS) $(TARGET)
 

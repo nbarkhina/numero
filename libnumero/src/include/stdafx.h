@@ -43,12 +43,12 @@ typedef int errno_t;
 #define _T(z) z
 #define _tprintf_s printf
 #define ARRAYSIZE(z) (sizeof(z)/sizeof((z)[0]))
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
+// #ifndef max
+// #define max(a,b)            (((a) > (b)) ? (a) : (b))
+// #endif
+// #ifndef min
+// #define min(a,b)            (((a) < (b)) ? (a) : (b))
+// #endif
 
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp

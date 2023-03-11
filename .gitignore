@@ -8,3 +8,4 @@
 .npmignore
 package.json
 .vscode/settings.json
+obj

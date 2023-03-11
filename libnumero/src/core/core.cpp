@@ -15,6 +15,10 @@
 #include "reverse_info_table.h"
 #endif
 
+
+#include <string>
+#include <cstring>
+
 #define FLASH_BYTE_PROGRAM 0xA0
 #define FLASH_BYTE_ERASE 0x80
 #define FLASH_BYTE_FASTMODE 0x20
@@ -22,7 +26,7 @@
 #define FLASH_BYTE_FASTMODE_EXIT 0x90
 #define FLASH_BYTE_FASTMODE_PROG 0xA0
 
-unsigned char mem_read(memc *mem, unsigned short addr) {
+unsigned char mem_read(const memc *mem, const unsigned short addr) {
 	if ((mem->port27_remap_count > 0) && !mem->boot_mapped && (mc_bank(addr) == 3) && (addr >= (0x10000 - 64 * mem->port27_remap_count)) && addr >= 0xFB64) {
 		return mem->ram[0 * PAGE_SIZE + mc_base(addr)];
 	}
@@ -266,9 +270,9 @@ int CPU_reset(CPU_t *cpu) {
 	case TI_84PSE: 
 	case TI_84P:
 	case TI_84PCSE: {
-		int bootPage = cpu->mem_c->flash_pages - 1;
+		unsigned int bootPage = (unsigned int) cpu->mem_c->flash_pages - 1;
 		/*	Address		page	write?	ram?	no exec?	*/
-		bank_state_t banks[5] = {
+		const bank_state_t banks[5] = {
 			{ cpu->mem_c->flash + bootPage * PAGE_SIZE, bootPage, FALSE, FALSE, FALSE },
 			{ cpu->mem_c->flash, 0, FALSE, FALSE, FALSE },
 			{ cpu->mem_c->flash, 0, FALSE, FALSE, FALSE },
@@ -300,11 +304,13 @@ BOOL is_priveleged_page(CPU_t *cpu) {
 }
 
 static BOOL is_allowed_exec(CPU_t *cpu) {
-	bank_state_t  *bank = &cpu->mem_c->banks[mc_bank(cpu->pc)];
+	const memc *mem = cpu->mem_c;
+	const int pc_bank = mc_bank(cpu->pc);
+	const bank_state_t *bank = &mem->banks[pc_bank];
 	if (cpu->pio.model <= TI_83P) {
 		int protected_val;
 		if (bank->ram) {
-			protected_val = cpu->mem_c->protected_page[3];
+			protected_val = mem->protected_page[3];
 			if ((protected_val & 0x01) && bank->page == 0) {
 				return FALSE;
 			} else if ((protected_val & 0x20) && bank->page == 1) {
@@ -316,31 +322,45 @@ static BOOL is_allowed_exec(CPU_t *cpu) {
 		} else if (bank->page >= 0x1C) {
 			return TRUE;
 		}
-		protected_val = cpu->mem_c->protected_page[(bank->page - 8) / 8];
-		// basically this checks whether the bit corresponding to the page
+
+		protected_val = mem->protected_page[(bank->page - 8) / 8];
+		// Basically this checks whether the bit corresponding to the page
 		// is set indicating no exec is allowed
 		return !(protected_val & (0x01 << ((bank->page - 8) % 8)));
 	} else {
-		memc *mem = cpu->mem_c;
-		if (!bank->ram)	{		//if its flash and between page limits
+		if (!bank->ram)	{		// If its flash and between page limits
 			return bank->page <= mem->flash_lower || bank->page > mem->flash_upper;
 		}
-		if (bank->page & (2 >> (cpu->mem_c->prot_mode + 1)))
-			return TRUE;		//we know were in ram so lets check if the page is allowed in the mem protected mode
-		//execution is allowed on 2^(mode+1)
-		//finally we check ports 25/26 to see if its ok to execute on this page
-		int global_addr = bank->page * PAGE_SIZE + (cpu->pc & 0x3FFF);
-		if ((mem->port27_remap_count > 0) && !mem->boot_mapped && (mc_bank(cpu->pc) == 3) && (cpu->pc >= (0x10000 - 64 * mem->port27_remap_count)) && cpu->pc >= 0xFB64)
-			global_addr = 0 * PAGE_SIZE + mc_base(cpu->pc);
-		else if ((mem->port28_remap_count > 0) && !mem->boot_mapped && (mc_bank(cpu->pc) == 2) && (mc_base(cpu->pc) < 64 * mem->port28_remap_count))
-			global_addr = 1 * PAGE_SIZE + mc_base(cpu->pc);
-		if (global_addr < cpu->mem_c->ram_lower || global_addr > cpu->mem_c->ram_upper)
-			return FALSE;
-		return TRUE;
+
+		if (bank->page & (2 >> (mem->prot_mode + 1))) {
+			return TRUE;		// We know were in ram so lets check if the page is allowed in the mem protected mode
+		}
+
+		// Execution is allowed on 2^(mode+1)
+		// Finally we check ports 25/26 to see if its ok to execute on this page
+		const int pc_base_addr = mc_base(cpu->pc);
+		int global_addr;
+		if ((mem->port27_remap_count > 0) &&
+			!mem->boot_mapped && (pc_bank == 3) &&
+			(cpu->pc >= (0x10000 - 64 * mem->port27_remap_count)) &&
+			cpu->pc >= 0xFB64)
+		{
+			global_addr = 0 * PAGE_SIZE + pc_base_addr;
+		} else if ((mem->port28_remap_count > 0) &&
+			!mem->boot_mapped &&
+			(pc_bank == 2) &&
+			(pc_base_addr < 64 * mem->port28_remap_count))
+		{
+			global_addr = 1 * PAGE_SIZE + pc_base_addr;
+		} else {
+			global_addr = bank->page * PAGE_SIZE + pc_base_addr;
+		}
+
+		return global_addr >= mem->ram_lower && global_addr <= mem->ram_upper;
 	}
 }
 
-void change_page(memc *mem, int bank, unsigned char page, BOOL ram) {
+void change_page(memc *mem, int bank, u_char page, BOOL ram) {
 	mem->normal_banks[bank].ram = ram;
 	if (ram) {
 		mem->normal_banks[bank].page = page;
@@ -366,7 +386,7 @@ void update_bootmap_pages(memc *mem_c) {
 	mem_c->bootmap_banks[1].no_exec = FALSE;
 	mem_c->bootmap_banks[1].ram = mem_c->normal_banks[1].ram;
 
-	mem_c->bootmap_banks[2].page = mem_c->normal_banks[1].page | (!mem_c->flash_version == 1);
+	mem_c->bootmap_banks[2].page = mem_c->normal_banks[1].page | (mem_c->flash_version == 0);
 	mem_c->bootmap_banks[2].addr = (mem_c->normal_banks[1].ram ? mem_c->ram : mem_c->flash) + (mem_c->bootmap_banks[2].page * PAGE_SIZE);
 	mem_c->bootmap_banks[2].read_only = FALSE;
 	mem_c->bootmap_banks[2].no_exec = FALSE;
@@ -393,16 +413,17 @@ static void endflash_break(CPU_t *cpu) {
 }
 
 static int CPU_opcode_fetch(CPU_t *cpu) {
-	int bank_num = mc_bank(cpu->pc);
-	bank_state_t *bank = &cpu->mem_c->banks[bank_num];
-	//the boot page is mapped to bank 0 to start
-	//if code is run from an address of whatever page is mapped to port 6
-	//then the page is changed to page 0. why? who the fuck knows
-	if (!cpu->mem_c->hasChangedPage0 && !bank->ram && (bank_num == 1 || (cpu->mem_c->boot_mapped && bank_num == 2)))
-	{
-		change_page(cpu->mem_c, 0, 0, FALSE);
-		cpu->mem_c->hasChangedPage0 = TRUE;
+	const int bank_num = mc_bank(cpu->pc);
+	memc *mem = cpu->mem_c;
+	const bank_state_t *bank = &mem->banks[bank_num];
+	// The boot page is mapped to bank 0 to start
+	// If code is run from an address of whatever page is mapped to port 6
+	// then the page is changed to page 0. why? who the fuck knows
+	if (!mem->hasChangedPage0 && !bank->ram && (bank_num == 1 || (cpu->mem_c->boot_mapped && bank_num == 2))) {
+		change_page(mem, 0, 0, FALSE);
+		mem->hasChangedPage0 = TRUE;
 	}
+
 	if (!is_allowed_exec(cpu)) {
 		if (cpu->exe_violation_callback) {
 			cpu->exe_violation_callback(cpu);
@@ -410,15 +431,16 @@ static int CPU_opcode_fetch(CPU_t *cpu) {
 			CPU_reset(cpu);
 		}
 	}
-	if (!bank->ram && cpu->mem_c->step != FLASH_READ) {	//I DON'T THINK THIS IS CORRECT
+
+	if (!bank->ram && mem->step != FLASH_READ) {	//I DON'T THINK THIS IS CORRECT
 		endflash_break(cpu);							//However it shouldn't be a problem
 	}													//assuming you know how to write to flash
 
-	cpu->bus = mem_read(cpu->mem_c, cpu->pc);
+	cpu->bus = mem_read(mem, cpu->pc);
 	if (bank->ram) {
-		SEtc_add(cpu->timer_c, cpu->mem_c->read_OP_ram_tstates);
+		SEtc_add(cpu->timer_c, mem->read_OP_ram_tstates);
 	} else {
-		SEtc_add(cpu->timer_c, cpu->mem_c->read_OP_flash_tstates);
+		SEtc_add(cpu->timer_c, mem->read_OP_flash_tstates);
 	}
 	cpu->pc++;
 	cpu->r = (cpu->r & 0x80) + ((cpu->r + 1) & 0x7F);		//note: prefix opcodes inc the r reg to. so bit 7,h has 2 incs.
@@ -477,11 +499,13 @@ static unsigned char flash_read(CPU_t *cpu, unsigned short addr) {
 }
 
 unsigned char CPU_mem_read(CPU_t *cpu, unsigned short addr) {
+#ifndef DISABLE_EXTRA_FEATURES
 	if (check_mem_read_break(cpu->mem_c, addr16_to_waddr(cpu->mem_c, addr))) {
 		if (cpu->mem_read_break_callback) {
 			cpu->mem_read_break_callback(cpu);
 		}
 	}
+#endif
 
 	if (cpu->mem_c->banks[mc_bank(addr)].ram) {
 		cpu->bus = mem_read(cpu->mem_c, addr);
@@ -562,11 +586,13 @@ static void flash_write(CPU_t *cpu, unsigned short addr, unsigned char data) {
 		break;
 	case FLASH_PROGRAM: {
 		flash_write_byte(mem_c, addr, data);
+#ifndef DISABLE_EXTRA_FEATURES
 		if (check_mem_write_break(cpu->mem_c, addr16_to_waddr(cpu->mem_c, addr))) {
 			if (cpu->mem_write_break_callback) {
 				cpu->mem_write_break_callback(cpu);
 			}
 		}
+#endif
 
 		endflash(mem_c);
 		break;
@@ -593,11 +619,13 @@ static void flash_write(CPU_t *cpu, unsigned short addr, unsigned char data) {
 			for (int i = 0; i < cpu->mem_c->flash_size; i++) {
 				cpu->mem_c->flash[i] = 0xFF;
 
+#ifndef DISABLE_EXTRA_FEATURES
 				if (check_mem_write_break(cpu->mem_c, addr32_to_waddr(i, FALSE))) {
 					if (cpu->mem_write_break_callback) {
 						cpu->mem_write_break_callback(cpu);
 					}
 				}
+#endif
 			}
 		} else if (data == 0x30) {
 			// erase sectors
@@ -633,11 +661,13 @@ static void flash_write(CPU_t *cpu, unsigned short addr, unsigned char data) {
 			for (int i = startaddr; i < endaddr; i++) {
 				mem_c->flash[i] = 0xFF;
 
+#ifndef DISABLE_EXTRA_FEATURES
 				if (check_mem_write_break(cpu->mem_c, addr32_to_waddr(i, FALSE))) {
 					if (cpu->mem_write_break_callback) {
 						cpu->mem_write_break_callback(cpu);
 					}
 				}
+#endif
 			}
 		} else {
 			endflash_break(cpu);
@@ -661,11 +691,13 @@ static void flash_write(CPU_t *cpu, unsigned short addr, unsigned char data) {
 		break;
 	case FLASH_FASTMODE_PROG: {
 		flash_write_byte(cpu->mem_c, addr, data);
+#ifndef DISABLE_EXTRA_FEATURES
 		if (check_mem_write_break(cpu->mem_c, addr16_to_waddr(cpu->mem_c, addr))) {
 			if (cpu->mem_write_break_callback) {
 				cpu->mem_write_break_callback(cpu);
 			}
 		}
+#endif
 		mem_c->step = FLASH_FASTMODE;
 		break;
 	}
@@ -687,11 +719,13 @@ void CPU_mem_write(CPU_t *cpu, unsigned short addr, unsigned char data) {
 	if (bank->ram) {
 		if (!bank->read_only) {
 			mem_write(cpu->mem_c, addr, data);
+#ifndef DISABLE_EXTRA_FEATURES
 			if (check_mem_write_break(cpu->mem_c, addr16_to_waddr(cpu->mem_c, addr))) {
 				if (cpu->mem_write_break_callback) {
 					cpu->mem_write_break_callback(cpu);
 				}
 			}
+#endif
 		}
 		SEtc_add(cpu->timer_c, cpu->mem_c->write_ram_tstates);
 	} else {
@@ -822,6 +856,7 @@ static void CPU_opcode_run(CPU_t *cpu) {
 		opcode_reverse_info[cpu->bus](cpu);
 	}
 #endif
+
 	const int time = opcode[cpu->bus](cpu);
 	if (time != 0) {
 		tc_add(cpu->timer_c, time);
@@ -965,23 +1000,19 @@ int CPU_step(CPU_t* cpu) {
 	if (cpu->interrupt && !cpu->ei_block) {
 		//if an interrupt is generated during a ld a, r or ld a, i
 		//then the PV flag should be reset
-		unsigned char edprefix = mem_read(cpu->mem_c, cpu->pc - 2);
-		unsigned char instruction = mem_read(cpu->mem_c, cpu->pc - 1);
+		u_char edprefix = mem_read(cpu->mem_c, cpu->pc - 2);
+		u_char instruction = mem_read(cpu->mem_c, cpu->pc - 1);
 		if (edprefix == 0xED && (instruction == 0x57 || instruction == 0x5F)) {
 			cpu->f &= ~PV_MASK;
 		}
 		handle_interrupt(cpu);
 	}
 
+#ifndef DISABLE_EXTRA_FEATURES
 	if (cpu->profiler.running) {
 		handle_profiling(cpu, old_tstates, old_pc);
 	}
+#endif
 
 	return 0;
-}
-
-CPU_t* CPU_clone(CPU_t *cpu) {
-	CPU_t *new_cpu = (CPU_t *)malloc(sizeof(CPU_t));
-	memcpy(new_cpu, cpu, sizeof(CPU_t));
-	return new_cpu;
 }

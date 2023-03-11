@@ -62,7 +62,7 @@ typedef struct tagCALC {
 	char rom_version[32];
 	CalcModel model;
 
-	time_t time_error;
+	uint64_t time_error;
 
 	BOOL active;
 	BOOL running;
@@ -99,13 +99,13 @@ typedef struct tagCALC {
 void calc_turn_on(LPCALC);
 void calc_set_running(LPCALC lpCalc, BOOL running);
 LPCALC calc_slot_new(void);
-unsigned int calc_count(void);
+u_int calc_count(void);
 int calc_reset(LPCALC);
 int CPU_reset(CPU_t *);
 int calc_run_frame(LPCALC);
 int calc_run_seconds(LPCALC, double);
-int calc_run_timed(LPCALC, time_t);
-int calc_run_tstates(LPCALC lpCalc, time_t tstates);
+int calc_run_timed(LPCALC, uint64_t);
+int calc_run_tstates(LPCALC lpCalc, uint64_t tstates);
 int calc_run_all(void);
 BOOL calc_start_screenshot(const TCHAR *filename);
 void calc_stop_screenshot();
@@ -145,7 +145,7 @@ GLOBAL BOOL break_on_exe_violation;
 GLOBAL BOOL break_on_invalid_flash;
 GLOBAL BOOL auto_turn_on;
 GLOBAL BOOL sync_cores;
-GLOBAL unsigned char *link_hub_list[MAX_CALCS];
+GLOBAL u_char *link_hub_list[MAX_CALCS];
 GLOBAL link_t *link_hub;
 GLOBAL int link_hub_count;
 GLOBAL int calc_waiting_link;
