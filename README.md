@@ -4,6 +4,8 @@
 
 Numero is a libretro core for emulating the TI-83 family of graphing calculators. It is based on the awesome Wabbitemu emulator. It allows you to play your TI-83 games like never before in fullscreen and using a gamepad! You can also control it with a mouse or keyboard, or you can just use the virtual mouse for pressing the calculator buttons.
 
+Now available on [Steam](https://store.steampowered.com/app/2301080/RetroArch__Numero/)! 
+
 # Why did I make this?
 
 The TI-83 is where I first learned how to program in high school using the built in TI-Basic language. It was amazing discovering all the cool games people made and were able to get running on this device. There is a huge ecosystem of games and apps that have been created for these calculators over the years that deserve to be preserved and enjoyed by all!
