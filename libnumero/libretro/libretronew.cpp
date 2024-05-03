@@ -1073,7 +1073,7 @@ bool IsFrameReady() {
 
     retro_time_t time = perf_cb.get_time_usec(); //get time in microseconds
     fpsNow = time / 1000;
-    int elapsed = fpsNow - fpsThen;
+    retro_time_t elapsed = fpsNow - fpsThen;
     bool ready = true;
 
     int shouldBeFrames = (int)((double)elapsed / fpsInterval);
