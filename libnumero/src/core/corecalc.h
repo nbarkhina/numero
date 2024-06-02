@@ -22,13 +22,11 @@
 #define TI_84PSE_USERPAGES	0x60
 #define TI_84PCSE_USERPAGES	0xDB
 
-#ifndef PAGE_SIZE
 #define PAGE_SIZE 16384
-#endif
-
-#ifndef BIT
 #define BIT(bit) (1 << (bit))
-#endif
+
+#define u_char unsigned char 
+#define u_int unsigned int
 
 #ifdef MACVER
 #define FPS 30
@@ -154,14 +152,14 @@ typedef enum {
 
 typedef struct memory_context {
 	/* to be defined */
-	unsigned char *flash;
-	unsigned char *ram;
+	u_char *flash;
+	u_char *ram;
 	union {
 		struct {
-			unsigned char *flash_break;
-			unsigned char *ram_break;
+			u_char *flash_break;
+			u_char *ram_break;
 		};
-		unsigned char *breaks[2];
+		u_char *breaks[2];
 	};
 
 	BOOL (*breakpoint_manager_callback)(struct memory_context *, BREAK_TYPE, waddr_t);
@@ -320,7 +318,7 @@ typedef struct CPU {
 typedef int (*opcodep)(CPU_t*);
 typedef int (*index_opcodep)(CPU_t*, char);
 
-unsigned char mem_read(memc*, unsigned short);
+unsigned char mem_read(const memc*, const unsigned short);
 uint8_t wmem_read(memc*, waddr_t);
 uint16_t wmem_read16(memc *mem, waddr_t waddr);
 unsigned short mem_read16(memc*, unsigned short);
@@ -346,7 +344,7 @@ BOOL check_mem_read_break(memc *mem, waddr_t waddr);
 BOOL check_mem_write_break(memc *mem, waddr_t waddr);
 
 BOOL is_priveleged_page(CPU_t *cpu);
-void change_page(memc *mem, int bank, unsigned char page, BOOL ram);
+void change_page(memc *mem, int bank, u_char page, BOOL ram);
 void update_bootmap_pages(memc *mem_c);
 
 int tc_init(timerc*, int);
@@ -406,7 +404,7 @@ void displayreg(CPU_t *);
 
 #endif
 
-#define addschar(address_m, offset_m) ( ( (unsigned short) address_m ) + ( (char) offset_m ) )
+#define addschar(address_m, offset_m) ( ( ( (signed char) offset_m ) + (unsigned short) address_m ) )
 
 
 #define index_ext(hlcase,ixcase,iycase) \

@@ -4,7 +4,6 @@
 #include "libretro.cpp"
 #else
 
-// #define DEBUG2
 
 //using STB library to load the PNG files
 #define STB_IMAGE_IMPLEMENTATION
@@ -41,8 +40,9 @@
 #include "lcd.h"
 #include "neil_controller.h"
 
-
+std::string debugText;
 calc_t mycalc;
+bool debugMode = false;
 #define FRAME_SUBDIVISIONS 1024
 
 #ifdef _3DS
@@ -470,7 +470,7 @@ void retro_get_system_info(struct retro_system_info* info)
 #ifndef GIT_VERSION
 #define GIT_VERSION ""
 #endif
-    info->library_version = "1.0" GIT_VERSION;
+    info->library_version = "1.1" GIT_VERSION;
     info->need_fullpath = false;
     info->block_extract = false;
     info->valid_extensions = "8xp|8xk|8xg";
@@ -494,7 +494,7 @@ bool hasPerf = false;
 
 void retro_init(void)
 {
-
+    debugText = "";
     hasPerf = environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb);
 
     struct retro_log_callback log;
@@ -588,6 +588,9 @@ void retro_reset()
 
     if (has_ti_rom)
     {
+        debugText += rom_name;
+        debugText += " ";
+
         const char* systemdirtmp = NULL;
         environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &systemdirtmp);
 
@@ -595,7 +598,8 @@ void retro_reset()
         fullpath += "/";
         fullpath += rom_name;
 
-        rom_load(&mycalc, fullpath.c_str());
+        bool loaded = rom_load(&mycalc, fullpath.c_str());
+
 
         calc_turn_on(&mycalc);
 
@@ -699,6 +703,13 @@ static void check_variables(void)
     {
         virtualMouseSpeed = atoi(var.value);
     }
+
+    struct retro_variable var2 = { 0 };
+    var2.key = "debug_mode";
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var2) && var2.value)
+    {
+        debugMode = atoi(var2.value);
+    }
 }
 
 #define RETRO_DEVICE_JOYPAD_ALT  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
@@ -718,7 +729,7 @@ bool retro_load_game(const struct retro_game_info* info)
     {
         if (filestream_exists(getProgressDir()))
         {
-            loadState(true);
+           loadState(true);
         }
 
         //we support no rom file
@@ -983,16 +994,12 @@ void drawScreen()
                 if (downPressed) gamepadY = 15000;
             }
 
-#ifdef DEBUG2
-            sprintf(textBuffer, "MouseX: %d MouseY: %d Pressed: %d", mouseX, mouseY, mousePressed);
-            ezd_text(hDib, hFont, textBuffer, -1, 10, 310, 0xffffff);
-
-            sprintf(textBuffer, "PointerX: %d PointerY: %d Pressed: %d", mousePointerX, mousePointerY, mousePointerPressed);
-            ezd_text(hDib, hFont, textBuffer, -1, 10, 340, 0xffffff);
-
-            sprintf(textBuffer, "GamepadX: %d GamepadY: %d", gamepadX, gamepadY);
-            ezd_text(hDib, hFont, textBuffer, -1, 10, 370, 0xffffff);
-#endif
+            if (debugMode)
+            {
+                sprintf(textBuffer, "DEBUG: %s", debugText.c_str());
+                ezd_text(hDib, hFont, textBuffer, -1, 10, 210, 0xffffff);
+            }
+            
 
             //deadzone
             if (gamepadX > 4000 || gamepadX < -4000)
@@ -1066,7 +1073,7 @@ bool IsFrameReady() {
 
     retro_time_t time = perf_cb.get_time_usec(); //get time in microseconds
     fpsNow = time / 1000;
-    int elapsed = fpsNow - fpsThen;
+    retro_time_t elapsed = fpsNow - fpsThen;
     bool ready = true;
 
     int shouldBeFrames = (int)((double)elapsed / fpsInterval);

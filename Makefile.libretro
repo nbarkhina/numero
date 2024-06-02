@@ -204,6 +204,10 @@ else ifeq ($(platform), tvos-arm64)
    ifeq ($(IOSSDK),)
       IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
    endif
+   CC = cc -arch arm64 -isysroot $(IOSSDK)
+   CXX = c++ -arch arm64 -isysroot $(IOSSDK)
+   CC += -mappletvos-version-min=9.0
+   CXX += -mappletvos-version-min=9.0
    HAVE_NETWORK=1
 
 # Theos
@@ -270,7 +274,8 @@ else ifeq ($(platform), vita)
    CXX = arm-vita-eabi-g++$(EXE_EXT)
    AR = arm-vita-eabi-ar$(EXE_EXT)
    CFLAGS += -DVITA
-   CXXFLAGS += -DVITA
+   CXXFLAGS += -DVITA -funroll-loops -fsigned-char -ffast-math -fno-signed-zeros \
+      -mfloat-abi=hard -mfpu=neon -mthumb
    STATIC_LINKING = 1
 
 # CTR(3DS)
@@ -741,6 +746,12 @@ CXXFLAGS += $(INCFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $(OBJOUT)$@ $<
+
+clean_android:
+	rm -f $(OBJECTS) $(TARGET)
+	rm -r libnumero/libretro/libs
+	rm -r libnumero/libretro/obj
+	rm numero_libretro_android.so
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)

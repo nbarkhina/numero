@@ -24,7 +24,7 @@ typedef enum {
 	LERR_SUCCESS = 0,			/* No error */
 	LERR_LINK = 1,				/* General link error */
 	LERR_TIMEOUT,				/* Time out error */
-	LERR_FORCELOAD,				/* Error force loading an application (TI-83+) */
+	LERR_FORCELOAD,				/* ERROR force loading an application (TI-83+) */
 	LERR_CHKSUM,				/* Packet with invalid checksum was received */
 	LERR_NOTINIT,				/* Link was not initialized */
 	LERR_MEM,					/* Not enough memory on calc */
@@ -61,8 +61,8 @@ typedef enum {
 /* Contains connections and current state
  * of a link port. */
 typedef struct link {
-	unsigned char host;					// what we wrote to the link port
-	unsigned char *client;					// what they wrote to the link port
+	u_char host;					// what we wrote to the link port
+	u_char *client;					// what they wrote to the link port
 	volatile size_t vlink_send;		// amount already sent over vlink
 	volatile size_t vlink_recv;		// amount already received over the link
 	size_t vlink_size;				// Size of the var currently on the link (if known)
@@ -198,12 +198,12 @@ enum TI86OBJ {
 #define EquObj_3        0x63
 
 int link_init(CPU_t *cpu);
-void link_wait(CPU_t *cpu, time_t tstates);
-void link_recv_pkt(CPU_t *cpu, TI_PKTHDR *hdr, unsigned char *data);
+void link_wait(CPU_t *cpu, uint64_t tstates);
+void link_recv_pkt(CPU_t *cpu, TI_PKTHDR *hdr, u_char *data);
 
 /* Send a TI packet over the virtual link
 * On error: Throws a Packet Exception */
-void link_send_pkt(CPU_t *cpu, unsigned char command_ID, void *data);
+void link_send_pkt(CPU_t *cpu, u_char command_ID, void *data);
 /*
 * Receive a sequence of bytes over the virtual link
 * On error: Throws a Byte Exception

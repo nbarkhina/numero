@@ -17,6 +17,9 @@
 #include "colorlcd.h"
 #include "savestate.h"
 
+#include <string>
+#include <cstring>
+
 #pragma warning(push)
 #pragma warning( disable : 4100 )
 
@@ -53,14 +56,15 @@ LPCALC calc_slot_new(void) {
 	if (link_hub == NULL) {
 		memset(link_hub_list, 0, sizeof(link_hub_list));
 		link_t *hub_link = (link_t *) malloc(sizeof(link_t)); 
-		if (!hub_link) {
+		if (hub_link) {
+			hub_link->host = 0;				//neither lines set
+			hub_link->client = &hub_link->host;	//nothing plugged in.
+			link_hub = hub_link;
+		} else {
 			printf("Couldn't allocate memory for link hub\n");
 		}
-		hub_link->host		= 0;				//neither lines set
-		hub_link->client	= &hub_link->host;	//nothing plugged in.
-		link_hub = hub_link;
 	}
-	int i;
+   int i;
 	for (i = 0; i < MAX_CALCS; i++) {
 		if (calcs[i].active == FALSE) {
 			memset(&calcs[i], 0, sizeof(calc_t));
@@ -75,13 +79,13 @@ LPCALC calc_slot_new(void) {
 	return NULL;
 }
 
-unsigned int calc_count(void) {
-	unsigned int count = 0;
+u_int calc_count(void) {
+	u_int count = 0;
 
-	int i;
-	for (i = 0; i < MAX_CALCS; i++) {
-		if (calcs[i].active == TRUE)
+	for (int i = 0; i < MAX_CALCS; i++) {
+		if (calcs[i].active == TRUE) {
 			count++;
+		}
 	}
 	return count;
 }
@@ -109,7 +113,7 @@ static void setup_callbacks(LPCALC lpCalc) {
 }
 
 /* 81 */
-int calc_init_81(LPCALC lpCalc, char *version) {
+int calc_init_81(LPCALC lpCalc, const char *version) {
 	/* INTIALIZE 81 */
 	int error = memory_init_81(&lpCalc->mem_c);
 	error |= tc_init(&lpCalc->timer_c, MHZ_2);
@@ -117,7 +121,7 @@ int calc_init_81(LPCALC lpCalc, char *version) {
 	ClearDevices(&lpCalc->cpu);
 	// v2 is basically an 82
 	if (*version == '2') {
-		BOOL isBad82 = TRUE;
+		const BOOL isBad82 = TRUE;
 		error |= device_init_83(&lpCalc->cpu, isBad82);
 		error |= audio_init(lpCalc);
 	} else {
@@ -138,7 +142,7 @@ static BOOL calc_init_83(LPCALC lpCalc, char *os) {
 	error |= tc_init(&lpCalc->timer_c, MHZ_6);
 	error |= CPU_init(&lpCalc->cpu, &lpCalc->mem_c, &lpCalc->timer_c);
 	ClearDevices(&lpCalc->cpu);
-	BOOL isBad82 = lpCalc->model == TI_82 && memcmp(os, "19.006", 6) != 0;
+	const BOOL isBad82 = lpCalc->model == TI_82 && memcmp(os, "19.006", 6) != 0;
 	error |= device_init_83(&lpCalc->cpu, isBad82);
 	error |= audio_init(lpCalc);
 	/* END INTIALIZE 83 */
@@ -310,6 +314,7 @@ BOOL rom_load(LPCALC lpCalc, LPCTSTR FileName) {
 	lpCalc->model = tifile->model;
 
 	int error = 0;
+	int myerror = 0;
 	if (tifile->type == SAV_TYPE) {
 		lpCalc->active 	= TRUE;
 		char VerString[64] = { 0 };
@@ -373,7 +378,7 @@ BOOL rom_load(LPCALC lpCalc, LPCTSTR FileName) {
 				break;
 			case TI_84PSE:
 			case TI_83PSE:
-				calc_init_83pse(lpCalc);
+				myerror = calc_init_83pse(lpCalc);
 				memcpy(	lpCalc->cpu.mem_c->flash,
 						tifile->rom->data,
 						(lpCalc->cpu.mem_c->flash_size<=tifile->rom->size)?lpCalc->cpu.mem_c->flash_size:tifile->rom->size);
@@ -492,27 +497,31 @@ int calc_run_frame(LPCALC lpCalc) {
 	return 0;
 }
 
-int calc_run_tstates(LPCALC lpCalc, time_t tstates) {
+int calc_run_tstates(LPCALC lpCalc, uint64_t tstates) {
 	uint64_t time_end = lpCalc->timer_c.tstates + tstates - lpCalc->time_error;
 
 	while (lpCalc->running) {
+#ifndef DISABLE_EXTRA_FEATURES
 		if (check_break(&lpCalc->mem_c, addr16_to_waddr(&lpCalc->mem_c, lpCalc->cpu.pc))) {
 			calc_set_running(lpCalc, FALSE);
 			lpCalc->breakpoint_callback(lpCalc);
 			return 0;
 		}
+#endif
 
 		CPU_step(&lpCalc->cpu);
 
+#ifndef DISABLE_EXTRA_FEATURES
 		if (lpCalc->cpu.pio.lcd != NULL && 
 			(lpCalc->timer_c.elapsed - lpCalc->cpu.pio.lcd->lastaviframe) >= (1.0 / AVI_FPS))
 		{
 			notify_event(lpCalc, AVI_VIDEO_FRAME_EVENT);
 			lpCalc->cpu.pio.lcd->lastaviframe += 1.0 / AVI_FPS;
 		}
+#endif
 
 		if (lpCalc->timer_c.tstates >= time_end) {
-			lpCalc->time_error = (time_t)(lpCalc->timer_c.tstates - time_end);
+			lpCalc->time_error = (uint64_t)(lpCalc->timer_c.tstates - time_end);
 			break;
 		}
 	}
@@ -563,7 +572,7 @@ void calc_unregister_event(LPCALC lpCalc, EVENT_TYPE event_type, event_callback 
 	for (int i = 0; i < MAX_REGISTERED_EVENTS; i++) {
 		if (lpCalc->registered_events[i].type == event_type && 
 			lpCalc->registered_events[i].callback == callback &&
-			lpCalc->registered_events[i].lParam == lParam) 
+			lpCalc->registered_events[i].lParam == lParam)
 		{
 			lpCalc->registered_events[i].type = NO_EVENT;
 			lpCalc->registered_events[i].callback = NULL;
@@ -637,7 +646,6 @@ int calc_run_all(void) {
 
 			if (hostVal != link_hub->host) {
 				link_hub->host = hostVal;
-				//TODO NEIL
 				/*calc_waiting = TRUE;
 				for (int k = 0; k < MAX_CALCS; k++) {
 					if (link_hub_list[k]) {
@@ -650,7 +658,7 @@ int calc_run_all(void) {
 			if (calcs[j].active && !calcs[j].fake_running) {
 				active_calc = j;
 				int speed = calcs[j].speed;
-				time_t time = ((time_t) speed * calcs[j].timer_c.freq / FPS / 100) / FRAME_SUBDIVISIONS;
+				uint64_t time = ((uint64_t) speed * calcs[j].timer_c.freq / FPS / 100) / FRAME_SUBDIVISIONS;
 				calc_run_tstates(&calcs[j], time);
 			}
 		}
@@ -732,7 +740,7 @@ void audio_frame_callback(CPU_t *cpu) {
 }
 
 int calc_run_seconds(LPCALC lpCalc, double seconds) {
-	time_t time = (time_t ) (seconds * CLOCKS_PER_SEC);
+	uint64_t time = (uint64_t) (seconds * CLOCKS_PER_SEC);
 	return calc_run_timed(lpCalc, time);
 }
 
@@ -748,7 +756,7 @@ BOOL link_connected_hub(int slot) {
 }
 
 // ticks
-int calc_run_timed(LPCALC lpCalc, time_t time) {
+int calc_run_timed(LPCALC lpCalc, uint64_t time) {
 	int frames = (int) time / TPF;
 
 	int speed_backup = lpCalc->speed;
