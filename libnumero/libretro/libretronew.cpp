@@ -111,6 +111,7 @@ std::vector<NeilVirtualButton> virtualButtons;
 #ifdef __PSL1GHT__
 // vsnprintf is not present in psl1ght
 // use vsnprintf from stb_sprintf instead
+#define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
 #define vsnprintf stbsp_vsnprintf
 #endif
