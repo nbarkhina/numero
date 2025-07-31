@@ -109,11 +109,11 @@ std::vector<NeilVirtualButton> virtualButtons;
 
 // LIBRETRO CALLBACKS
 #ifdef __PSL1GHT__
-// vsnprintf is compiled into newlib, 
-// but not exposed in the headers with PSL1GHT for some reason.
-#ifndef vsnprintf
-int vsnprintf (char *s, size_t n, const char *format, va_list ap);
-#endif
+// vsnprintf is not present in psl1ght
+// use vsnprintf from stb_sprintf instead
+#define STB_SPRINTF_IMPLEMENTATION
+#include "stb_sprintf.h"
+#define vsnprintf stbsp_vsnprintf
 #endif
 void PrintDebugOutput(const char* text, ...)
 {
